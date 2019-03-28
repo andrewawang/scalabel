@@ -11,7 +11,8 @@ python test_model_server.py
 to see test result printout.
 """
 
-class test_SessionWorker(unittest.TestCase):
+
+class TestSessionWorker(unittest.TestCase):
     """
     Unit tests for class SessionWorker.
     """
@@ -22,10 +23,10 @@ class test_SessionWorker(unittest.TestCase):
         ms.ray.shutdown()
         ms.ray.init()
         self.assertTrue(ms.ray.is_initialized())
-        sessionId = 'temp'
-        tester = ms.SessionWorker.remote(sessionId)
-        self.assertFalse(tester == None)
-        self.assertFalse(tester.do_work.remote() == None)
+        sessionid = 'temp'
+        tester = ms.SessionWorker.remote(sessionid)
+        self.assertFalse(tester is None)
+        self.assertFalse(tester.do_work.remote() is None)
         
         ms.ray.shutdown()
 
@@ -37,8 +38,8 @@ class test_SessionWorker(unittest.TestCase):
         ms.ray.init()
         self.assertTrue(ms.ray.is_initialized())
 
-        sessionId = 'temp'
-        tester = ms.SessionWorker.remote(sessionId)
+        sessionid = 'temp'
+        tester = ms.SessionWorker.remote(sessionid)
         server_time = tester.do_work.remote()
         server_time = ms.ray.get(server_time)[:19]
         curr_time = str(ms.datetime.datetime.now())[:19]
@@ -46,6 +47,7 @@ class test_SessionWorker(unittest.TestCase):
         self.assertEqual(curr_time, server_time)
 
         ms.ray.shutdown()
+
 
 def server_start():
     """
@@ -56,6 +58,7 @@ def server_start():
     ms.time.sleep(1)
     return p
 
+
 def server_stop(p):
     """
     Kills server instance via KeyboardInterrupt. Returns true if stopped.
@@ -64,6 +67,7 @@ def server_stop(p):
     p.terminate()
     ms.time.sleep(1)
     return not p.is_alive()
+
 
 class test_serve(unittest.TestCase):
     """
@@ -75,7 +79,21 @@ class test_serve(unittest.TestCase):
         self.assertTrue(killed)
         
 
-class test_ModelServer(unittest.TestCase):
+def startup(sessionid='default'):
+    ms.ray.shutdown()
+    ms.ray.init()
+    # p = server_start()
+    session_worker = ms.SessionWorker.remote(sessionid)
+    model_server_session = ms.ModelServer()
+    return session_worker, model_server_session
+
+
+def shutdown(p):
+    # server_stop(p)
+    ms.ray.shutdown()
+
+
+class TestModelServer(unittest.TestCase):
     """
     Unit tests for class ModelServer.
     """
@@ -85,7 +103,13 @@ class test_ModelServer(unittest.TestCase):
         """
         init = ms.ModelServer()
         self.assertEqual(len(init.sessionIdsToWorkers), 0)
+    
+    def test_dummy(self):
+        sessionid = 'dummy test'
+        session_worker, model_server_session = startup(sessionid)
+        model_server_session.DummyComputation(session_worker, None)
 
+        shutdown(thread)
 
 
 if __name__ == '__main__':
