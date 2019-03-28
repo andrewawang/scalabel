@@ -88,7 +88,7 @@ def startup(session_id='default'):
     return session_worker, model_server_session
 
 
-def shutdown(p):
+def shutdown():  # p
     # server_stop(p)
     ms.ray.shutdown()
 
@@ -109,7 +109,7 @@ class TestModelServer(unittest.TestCase):
         session_worker, model_server_session = startup(session_id)
         model_server_session.DummyComputation(session_worker, None)
 
-        shutdown(thread)
+        shutdown()  # thread
 
 
 if __name__ == '__main__':
