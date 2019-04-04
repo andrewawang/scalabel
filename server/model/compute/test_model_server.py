@@ -4,7 +4,7 @@ import multiprocessing
 import signal
 
 """
-Usage: Run 
+Usage: Run
 
 python test_model_server.py
 
@@ -27,7 +27,7 @@ class TestSessionWorker(unittest.TestCase):
         tester = ms.SessionWorker.remote(session_id)
         self.assertFalse(tester is None)
         self.assertFalse(tester.do_work.remote() is None)
-        
+
         ms.ray.shutdown()
 
     def test_do_work(self):
@@ -75,9 +75,9 @@ class TestServe(unittest.TestCase):
     """
     def test_pipeline(self):
         p = server_start()
-        killed = server_stop(p)       
+        killed = server_stop(p)
         self.assertTrue(killed)
-        
+
 
 def startup(session_id='default'):
     ms.ray.shutdown()
@@ -103,7 +103,7 @@ class TestModelServer(unittest.TestCase):
         """
         init = ms.ModelServer()
         self.assertEqual(len(init.sessionIdsToWorkers), 0)
-    
+
     def test_dummy(self):
         session_id = 'dummy test'
         session_worker, model_server_session = startup(session_id)
