@@ -9,6 +9,9 @@ Usage: Run
 python test_model_server.py
 
 to see test result printout.
+
+Todo: Fix force local use, do not use redis server. 
+      inline tasks
 """
 
 
@@ -21,7 +24,7 @@ class TestSessionWorker(unittest.TestCase):
         check that init works.
         """
         ms.ray.shutdown()
-        ms.ray.init()
+        ms.ray.init(num_cpus=100, ignore_reinit_error=True)
         self.assertTrue(ms.ray.is_initialized())
         session_id = 'temp'
         tester = ms.SessionWorker.remote(session_id)
@@ -35,7 +38,7 @@ class TestSessionWorker(unittest.TestCase):
         check time within 1 second.
         """
         ms.ray.shutdown()
-        ms.ray.init()
+        ms.ray.init(num_cpus=100, ignore_reinit_error=True)
         self.assertTrue(ms.ray.is_initialized())
 
         session_id = 'temp'
@@ -74,8 +77,11 @@ def server_stop(p):
 
 
 def startup(session_id='default'):
+    """
+    Starts up session worker with session id.
+    """
     ms.ray.shutdown()
-    ms.ray.init()
+    ms.ray.init(num_cpus=100, ignore_reinit_error=True)
     # p = server_start()
     session_worker = ms.SessionWorker.remote(session_id)
     model_server_session = ms.ModelServer()
@@ -83,6 +89,9 @@ def startup(session_id='default'):
 
 
 def shutdown():  # p
+    """
+    Shuts down ray server.
+    """
     # server_stop(p)
     ms.ray.shutdown()
 
@@ -99,6 +108,9 @@ class TestModelServer(unittest.TestCase):
         self.assertEqual(len(init.sessionIdsToWorkers), 0)
 
     def test_register(self):
+        """
+        Test ModelServer.Register for correct pb2 response
+        """
         session_id = 'register test'
         session_worker, model_server_session = startup(session_id)
         response = model_server_session.Register(session_worker, None)
@@ -114,6 +126,9 @@ class TestModelServer(unittest.TestCase):
         shutdown()
 
     def test_dummy(self):
+        """
+        Test ModelServer.DummyComputation for correct pb2 response
+        """
         session_id = 'dummy test'
         session_worker, model_server_session = startup(session_id)
         response = model_server_session.DummyComputation(session_worker, None)
