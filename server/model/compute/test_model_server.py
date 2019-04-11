@@ -48,6 +48,10 @@ class TestSessionWorker(unittest.TestCase):
 
         ms.ray.shutdown()
 
+    """
+    Todo: Add integration test with multiple workers.
+    """
+
 
 def server_start():
     """
@@ -67,16 +71,6 @@ def server_stop(p):
     p.terminate()
     ms.time.sleep(1)
     return not p.is_alive()
-
-
-class TestServe(unittest.TestCase):
-    """
-    Unit tests for serve.
-    """
-    def test_pipeline(self):
-        p = server_start()
-        killed = server_stop(p)
-        self.assertTrue(killed)
 
 
 def startup(session_id='default'):
@@ -104,12 +98,53 @@ class TestModelServer(unittest.TestCase):
         init = ms.ModelServer()
         self.assertEqual(len(init.sessionIdsToWorkers), 0)
 
+    def test_register(self):
+        session_id = 'register test'
+        session_worker, model_server_session = startup(session_id)
+        response = model_server_session.Register(session_worker, None)
+
+        server_time = response.modelServerTimestamp[:19]
+        curr_time = str(ms.datetime.datetime.now())[:19]
+        self.assertEqual(curr_time, server_time)
+
+        self.assertTrue(int(response.modelServerDuration) > 0)
+
+        self.assertEqual(response.session.sessionId, session_id)
+
+        shutdown()
+
     def test_dummy(self):
         session_id = 'dummy test'
         session_worker, model_server_session = startup(session_id)
-        model_server_session.DummyComputation(session_worker, None)
+        response = model_server_session.DummyComputation(session_worker, None)
+
+        server_time = response.modelServerTimestamp[:19]
+        curr_time = str(ms.datetime.datetime.now())[:19]
+        self.assertEqual(curr_time, server_time)
+
+        self.assertTrue(int(response.modelServerDuration) > 0)
+
+        self.assertEqual(response.session.sessionId, session_id)
 
         shutdown()  # thread
+
+    """
+    Todo: add integration test with multiple sessions.
+    """
+
+
+class TestServe(unittest.TestCase):
+    """
+    Unit tests for serve.
+    """
+    def test_pipeline(self):
+        p = server_start()
+        killed = server_stop(p)
+        self.assertTrue(killed)
+
+    """
+    Todo: add grpc and pb2 input testing.
+    """
 
 
 if __name__ == '__main__':
