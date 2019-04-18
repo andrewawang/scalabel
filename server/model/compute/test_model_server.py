@@ -2,6 +2,7 @@ import unittest
 import model_server as ms
 import multiprocessing
 import signal
+import threading
 
 """
 Usage: Run
@@ -10,7 +11,7 @@ python test_model_server.py
 
 to see test result printout.
 
-Todo: Fix force local use, do not use redis server. 
+Todo: Fix force local use, do not use redis server.
       inline tasks
 """
 
@@ -33,7 +34,7 @@ class TestSessionWorker(unittest.TestCase):
 
         ms.ray.shutdown()
 
-    def test_do_work(self):
+    def test_do_work(self, session_id = 'temp'):
         """
         check time within 1 second.
         """
@@ -41,7 +42,6 @@ class TestSessionWorker(unittest.TestCase):
         ms.ray.init(num_cpus=100, ignore_reinit_error=True)
         self.assertTrue(ms.ray.is_initialized())
 
-        session_id = 'temp'
         tester = ms.SessionWorker.remote(session_id)
         server_time = tester.do_work.remote()
         server_time = ms.ray.get(server_time)[:19]
@@ -51,9 +51,15 @@ class TestSessionWorker(unittest.TestCase):
 
         ms.ray.shutdown()
 
-    """
-    Todo: Add integration test with multiple workers.
-    """
+    def test_multiple_workers(self):
+        """
+        Todo: Add integration test with multiple workers.
+        """
+        threads = []
+        for id in range(20):
+            t = threading.Thread(target=self.test_do_work, args=(str(id),))
+            threads.append(t)
+            t.start()
 
 
 def server_start():
@@ -107,11 +113,10 @@ class TestModelServer(unittest.TestCase):
         init = ms.ModelServer()
         self.assertEqual(len(init.sessionIdsToWorkers), 0)
 
-    def test_register(self):
+    def test_register(self, session_id = 'register test'):
         """
         Test ModelServer.Register for correct pb2 response
         """
-        session_id = 'register test'
         session_worker, model_server_session = startup(session_id)
         response = model_server_session.Register(session_worker, None)
 
@@ -125,11 +130,10 @@ class TestModelServer(unittest.TestCase):
 
         shutdown()
 
-    def test_dummy(self):
+    def test_dummy(self, session_id = 'dummy test'):
         """
         Test ModelServer.DummyComputation for correct pb2 response
         """
-        session_id = 'dummy test'
         session_worker, model_server_session = startup(session_id)
         response = model_server_session.DummyComputation(session_worker, None)
 
@@ -143,10 +147,26 @@ class TestModelServer(unittest.TestCase):
 
         shutdown()  # thread
 
-    """
-    Todo: add integration test with multiple sessions.
-    """
 
+    def test_multiple_dummy(self):
+        """
+        Todo: add integration test with multiple sessions.
+        """
+        threads = []
+        for id in range(20):
+            t = threading.Thread(target=self.test_dummy, args=(str(id),))
+            threads.append(t)
+            t.start()
+
+    def test_multiple_register(self):
+        """
+        Todo: add integration test with multiple sessions.
+        """
+        threads = []
+        for id in range(20):
+            t = threading.Thread(target=self.test_register, args=(str(id),))
+            threads.append(t)
+            t.start()
 
 class TestServe(unittest.TestCase):
     """
