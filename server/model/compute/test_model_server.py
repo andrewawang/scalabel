@@ -20,6 +20,7 @@ class TestSessionWorker(unittest.TestCase):
     """
     Unit tests for class SessionWorker.
     """
+
     def test_init(self):
         """
         check that init works.
@@ -34,7 +35,7 @@ class TestSessionWorker(unittest.TestCase):
 
         ms.ray.shutdown()
 
-    def test_do_work(self, session_id = 'temp'):
+    def test_do_work(self, session_id='temp'):
         """
         check time within 1 second.
         """
@@ -106,6 +107,7 @@ class TestModelServer(unittest.TestCase):
     """
     Unit tests for class ModelServer.
     """
+
     def test_init(self):
         """
         Check init.
@@ -113,7 +115,7 @@ class TestModelServer(unittest.TestCase):
         init = ms.ModelServer()
         self.assertEqual(len(init.sessionIdsToWorkers), 0)
 
-    def test_register(self, session_id = 'register test'):
+    def test_register(self, session_id='register test'):
         """
         Test ModelServer.Register for correct pb2 response
         """
@@ -130,7 +132,7 @@ class TestModelServer(unittest.TestCase):
 
         shutdown()
 
-    def test_dummy(self, session_id = 'dummy test'):
+    def test_dummy(self, session_id='dummy test'):
         """
         Test ModelServer.DummyComputation for correct pb2 response
         """
@@ -146,7 +148,6 @@ class TestModelServer(unittest.TestCase):
         self.assertEqual(response.session.sessionId, session_id)
 
         shutdown()  # thread
-
 
     def test_multiple_dummy(self):
         """
@@ -168,10 +169,12 @@ class TestModelServer(unittest.TestCase):
             threads.append(t)
             t.start()
 
+
 class TestServe(unittest.TestCase):
     """
     Unit tests for serve.
     """
+
     def test_pipeline(self):
         p = server_start()
         killed = server_stop(p)
